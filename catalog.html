@@ -231,32 +231,178 @@
       © 2026 LOFT HOUSE — риелторская фирма по подбору домов. Все права защищены. Лофт дизайн.
     </footer>
   </div>
+<style>
+  /* ---------- СТИЛИ ДЛЯ МОБИЛЬНОГО СЛАЙДЕРА ---------- */
+  @media (max-width: 768px) {
+    /* Галерея становится относительной для позиционирования стрелок */
+    .house-img {
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Отключаем все анимации слайдов */
+    .house-img .img-slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      animation: none !important; /* наверняка убираем автопрокрутку */
+    }
+
+    /* Активный слайд видим */
+    .house-img .img-slide.active {
+      opacity: 1;
+    }
+
+    /* Стрелки навигации */
+    .slide-arrow {
+      display: flex;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .slide-arrow button {
+      pointer-events: auto;
+      background: rgba(0, 0, 0, 0.45);
+      color: white;
+      border: none;
+      font-size: 28px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin: 0 5px;
+      backdrop-filter: blur(4px);
+      transition: background 0.2s;
+    }
+    .slide-arrow button:active {
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    /* Индикаторы (точки) */
+    .slide-dots {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transition: background 0.3s;
+    }
+    .dot.active {
+      background: white;
+    }
+  }
+</style>
+
 <script>
-  // Функция для инициализации свайпов и стрелок в каждой галерее
-  function initMobileSlides() {
+(function() {
+  // Запускаем после полной загрузки DOM
+  document.addEventListener('DOMContentLoaded', function() {
+    initMobileSliders();
+  });
+
+  // Если DOM уже готов (на случай, если скрипт в конце body)
+  if (document.readyState !== 'loading') {
+    initMobileSliders();
+  }
+
+  function initMobileSliders() {
+    // Применяем только на экранах <= 768px (можно и всегда, но на мобильных точно)
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (!isMobile) return; // на десктопе оставляем hover-анимацию
+
     const galleries = document.querySelectorAll('.house-img');
     
     galleries.forEach(gallery => {
+      // Пропускаем, если уже инициализирована
+      if (gallery.classList.contains('mobile-slider-ready')) return;
+      
       const slides = gallery.querySelectorAll('.img-slide');
-      if (slides.length < 2) return; // если только одно фото, ничего не делаем
+      if (slides.length < 2) return; // одно фото – листать нечего
       
+      // Устанавливаем начальное состояние: первый слайд активен
       let currentIndex = 0;
-      
-      // Устанавливаем первый слайд активным
-      slides.forEach((slide, i) => {
-        slide.classList.remove('active');
-        if (i === 0) slide.classList.add('active');
+      slides.forEach((s, i) => {
+        s.classList.remove('active');
+        if (i === 0) s.classList.add('active');
       });
       
-      // Функция перехода к слайду по индексу
-      function goToSlide(index) {
-        if (index === currentIndex) return;
-        slides[currentIndex].classList.remove('active');
-        currentIndex = (index + slides.length) % slides.length;
-        slides[currentIndex].classList.add('active');
+      // Создаём стрелки
+      const arrowDiv = document.createElement('div');
+      arrowDiv.className = 'slide-arrow';
+      arrowDiv.innerHTML = `
+        <button class="prev-btn" aria-label="Назад">&#8249;</button>
+        <button class="next-btn" aria-label="Вперёд">&#8250;</button>
+      `;
+      
+      // Создаём точки
+      const dotsDiv = document.createElement('div');
+      dotsDiv.className = 'slide-dots';
+      for (let i = 0; i < slides.length; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.dataset.index = i;
+        dotsDiv.appendChild(dot);
       }
       
-      // Свайп-обработчики
+      gallery.appendChild(arrowDiv);
+      gallery.appendChild(dotsDiv);
+      
+      // Функция переключения
+      function goToSlide(index) {
+        if (index === currentIndex) return;
+        // Снимаем active со старого слайда и точки
+        slides[currentIndex].classList.remove('active');
+        const dots = gallery.querySelectorAll('.dot');
+        if (dots[currentIndex]) dots[currentIndex].classList.remove('active');
+        
+        // Рассчитываем новый индекс (с зацикливанием)
+        currentIndex = (index + slides.length) % slides.length;
+        
+        // Добавляем active новому
+        slides[currentIndex].classList.add('active');
+        if (dots[currentIndex]) dots[currentIndex].classList.add('active');
+      }
+      
+      // Обработчики стрелок
+      arrowDiv.querySelector('.prev-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        goToSlide(currentIndex - 1);
+      });
+      arrowDiv.querySelector('.next-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        goToSlide(currentIndex + 1);
+      });
+      
+      // Обработчики точек
+      gallery.querySelectorAll('.dot').forEach(dot => {
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(dot.dataset.index);
+          goToSlide(idx);
+        });
+      });
+      
+      // Свайпы (touch)
       let touchStartX = 0;
       let touchEndX = 0;
       
@@ -271,41 +417,22 @@
       
       function handleSwipe() {
         const diff = touchStartX - touchEndX;
-        const threshold = 50; // минимальное расстояние для свайпа
+        const threshold = 50; // минимальное расстояние свайпа в пикселях
         if (Math.abs(diff) < threshold) return;
         
         if (diff > 0) {
-          // Свайп влево – следующий слайд
-          goToSlide(currentIndex + 1);
+          goToSlide(currentIndex + 1); // свайп влево → следующий
         } else {
-          // Свайп вправо – предыдущий
-          goToSlide(currentIndex - 1);
+          goToSlide(currentIndex - 1); // свайп вправо → предыдущий
         }
       }
       
-      // Добавляем кнопки-стрелки (только если их ещё нет)
-      if (!gallery.querySelector('.slide-arrows')) {
-        const arrowsDiv = document.createElement('div');
-        arrowsDiv.className = 'slide-arrows';
-        arrowsDiv.innerHTML = `
-          <button class="arrow-btn prev" aria-label="Предыдущее фото">‹</button>
-          <button class="arrow-btn next" aria-label="Следующее фото">›</button>
-        `;
-        gallery.style.position = 'relative'; // убедимся, что контейнер позиционирован
-        gallery.appendChild(arrowsDiv);
-        
-        // Обработчики кликов по стрелкам
-        arrowsDiv.querySelector('.prev').addEventListener('click', (e) => {
-          e.stopPropagation();
-          goToSlide(currentIndex - 1);
-        });
-        arrowsDiv.querySelector('.next').addEventListener('click', (e) => {
-          e.stopPropagation();
-          goToSlide(currentIndex + 1);
-        });
-      }
+      // Помечаем галерею как обработанную
+      gallery.classList.add('mobile-slider-ready');
     });
   }
+})();
+</script>
   
   // Запускаем, когда DOM готов
   document.addEventListener('DOMContentLoaded', initMobileSlides);
