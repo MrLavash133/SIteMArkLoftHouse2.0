@@ -313,34 +313,108 @@
   }
 </style>
 
+<style>
+  /* ---------- СТИЛИ ДЛЯ МОБИЛЬНОГО СЛАЙДЕРА ---------- */
+  @media (max-width: 768px) {
+    .house-img {
+      position: relative;
+      overflow: hidden;
+      /* легкий подсвечивание при тапе */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Отключаем все анимации */
+    .house-img .img-slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      animation: none !important;
+      /* курсор показывает, что можно нажать */
+      cursor: pointer;
+    }
+
+    .house-img .img-slide.active {
+      opacity: 1;
+    }
+
+    /* Стрелки */
+    .slide-arrow {
+      display: flex;
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      transform: translateY(-50%);
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .slide-arrow button {
+      pointer-events: auto;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      font-size: 28px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin: 0 5px;
+      backdrop-filter: blur(4px);
+    }
+    .slide-arrow button:active {
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    /* Точки-индикаторы */
+    .slide-dots {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+      pointer-events: auto;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transition: background 0.3s;
+      cursor: pointer;
+    }
+    .dot.active {
+      background: white;
+    }
+  }
+</style>
+
 <script>
 (function() {
-  // Запускаем после полной загрузки DOM
-  document.addEventListener('DOMContentLoaded', function() {
-    initMobileSliders();
-  });
-
-  // Если DOM уже готов (на случай, если скрипт в конце body)
-  if (document.readyState !== 'loading') {
-    initMobileSliders();
-  }
-
   function initMobileSliders() {
-    // Применяем только на экранах <= 768px (можно и всегда, но на мобильных точно)
+    // Проверяем, мобильное ли устройство
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    if (!isMobile) return; // на десктопе оставляем hover-анимацию
+    if (!isMobile) return;
 
     const galleries = document.querySelectorAll('.house-img');
     
     galleries.forEach(gallery => {
-      // Пропускаем, если уже инициализирована
       if (gallery.classList.contains('mobile-slider-ready')) return;
       
       const slides = gallery.querySelectorAll('.img-slide');
-      if (slides.length < 2) return; // одно фото – листать нечего
+      if (slides.length < 2) return;
       
-      // Устанавливаем начальное состояние: первый слайд активен
       let currentIndex = 0;
+      // Устанавливаем первый слайд
       slides.forEach((s, i) => {
         s.classList.remove('active');
         if (i === 0) s.classList.add('active');
@@ -367,23 +441,20 @@
       gallery.appendChild(arrowDiv);
       gallery.appendChild(dotsDiv);
       
-      // Функция переключения
+      // Функция перехода
       function goToSlide(index) {
         if (index === currentIndex) return;
-        // Снимаем active со старого слайда и точки
         slides[currentIndex].classList.remove('active');
         const dots = gallery.querySelectorAll('.dot');
         if (dots[currentIndex]) dots[currentIndex].classList.remove('active');
         
-        // Рассчитываем новый индекс (с зацикливанием)
         currentIndex = (index + slides.length) % slides.length;
         
-        // Добавляем active новому
         slides[currentIndex].classList.add('active');
         if (dots[currentIndex]) dots[currentIndex].classList.add('active');
       }
       
-      // Обработчики стрелок
+      // Стрелки
       arrowDiv.querySelector('.prev-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         goToSlide(currentIndex - 1);
@@ -393,7 +464,7 @@
         goToSlide(currentIndex + 1);
       });
       
-      // Обработчики точек
+      // Точки
       gallery.querySelectorAll('.dot').forEach(dot => {
         dot.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -402,7 +473,14 @@
         });
       });
       
-      // Свайпы (touch)
+      // Тап по изображению – переключение на следующий слайд
+      gallery.addEventListener('click', (e) => {
+        // Не реагируем, если клик был по стрелке или точке
+        if (e.target.closest('.slide-arrow') || e.target.closest('.slide-dots')) return;
+        goToSlide(currentIndex + 1);
+      });
+      
+      // Свайпы
       let touchStartX = 0;
       let touchEndX = 0;
       
@@ -412,30 +490,27 @@
       
       gallery.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) { // порог свайпа
+          if (diff > 0) {
+            goToSlide(currentIndex + 1);
+          } else {
+            goToSlide(currentIndex - 1);
+          }
+        }
+        // Если diff меньше 50, это был тап – он обработается в click
       });
       
-      function handleSwipe() {
-        const diff = touchStartX - touchEndX;
-        const threshold = 50; // минимальное расстояние свайпа в пикселях
-        if (Math.abs(diff) < threshold) return;
-        
-        if (diff > 0) {
-          goToSlide(currentIndex + 1); // свайп влево → следующий
-        } else {
-          goToSlide(currentIndex - 1); // свайп вправо → предыдущий
-        }
-      }
-      
-      // Помечаем галерею как обработанную
       gallery.classList.add('mobile-slider-ready');
     });
   }
+
+  // Запуск при загрузке и при изменении размера (если перевернули телефон)
+  window.addEventListener('load', initMobileSliders);
+  window.addEventListener('resize', initMobileSliders);
+  document.addEventListener('DOMContentLoaded', initMobileSliders);
+  if (document.readyState !== 'loading') initMobileSliders();
 })();
-</script>
-  
-  // Запускаем, когда DOM готов
-  document.addEventListener('DOMContentLoaded', initMobileSlides);
 </script>
 </body>
 </html>
