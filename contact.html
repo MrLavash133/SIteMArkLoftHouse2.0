@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>LOFT HOUSE | Контакты</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Стиль для сообщений об отправке, чтобы вписать в лофт-дизайн */
+    .form-message {
+      margin-top: 15px;
+      padding: 12px;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      display: none;
+      font-weight: 500;
+      text-align: center;
+    }
+    .form-message.success {
+      background-color: #2e3b2e;
+      color: #b8d9b8;
+      border: 1px solid #5a7a5a;
+      display: block;
+    }
+    .form-message.error {
+      background-color: #3b2e2e;
+      color: #d9b8b8;
+      border: 1px solid #7a5a5a;
+      display: block;
+    }
+    .contact-form input:disabled,
+    .contact-form textarea:disabled,
+    .btn-loft:disabled {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="site-container">
+    <header class="loft-header">
+      <div class="logo">LOFT<span>HOUSE</span></div>
+      <div class="sub-logo">Риелторская фирма по подбору домов</div>
+      <nav class="tab-navigation">
+        <a href="index.html">Главная</a>
+        <a href="catalog.html">Каталог домов</a>
+        <a href="contact.html">Контакты</a>
+      </nav>
+    </header>
+
+    <div class="loft-card">
+      <h2>▍ Свяжитесь с нами</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
+        <div>
+          <form id="contact-form" class="contact-form">
+            <input type="text" id="name" placeholder="Ваше имя" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="tel" id="phone" placeholder="Телефон">
+            <textarea id="message" rows="4" placeholder="Какой дом ищете?"></textarea>
+            <button type="submit" id="submit-btn" class="btn-loft" style="width:100%;">Отправить заявку</button>
+            <div id="form-message" class="form-message"></div>
+          </form>
+        </div>
+        <div class="contact-details">
+          <p style="font-weight: 600; color: #d97c4a; font-size: 1.2rem;">LOFT HOUSE</p>
+          <p>📍 Новокузнецк, ул. Кутузова 72, офис 1</p>
+          <p>📞 +7 (495) 122-33-44</p>
+          <p>✉️ loft@house.ru</p>
+          <p style="margin-top: 15px; font-size:0.9rem;">Работаем ежедневно с 10:00 до 20:00.<br>Выезд на просмотр в удобное время.</p>
+         <div style="margin-top: 15px; position: relative; overflow: hidden; border: 1px solid #b45f3a;">
+  <iframe 
+    src="https://yandex.ru/map-widget/v1/?um=constructor%3A0d183cb45d0289b7afc4399c7338bf58096bae9ab30a940008f8cc331fac804f&amp;source=constructo" 
+    width="100%" 
+    height="240" 
+    frameborder="0">
+  </iframe>
+</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="loft-footer">
+      © 2026 LOFT HOUSE — риелторская фирма по подбору домов. Все права защищены. Лофт дизайн.
+    </footer>
+  </div>
+
+  <script>
+    // ВАЖНО: Вставьте сюда URL вашего веб-приложения Google Apps Script
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1Vp8u64bjcL6j6VqGLbqYqEQCrIJsCzTSGKExFLokoaXw-qA6ugP4RY8DBnRxMpfq/exec';
+
+    const form = document.getElementById('contact-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const formMessage = document.getElementById('form-message');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); // Предотвращаем стандартную отправку формы
+
+      // Собираем данные из полей
+      const formData = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        message: document.getElementById('message').value.trim()
+      };
+
+      // Простая проверка на заполненность обязательных полей
+      if (!formData.name || !formData.email) {
+        showMessage('Пожалуйста, заполните имя и email.', 'error');
+        return;
+      }
+
+      // Блокируем кнопку и показываем процесс отправки
+      setLoadingState(true);
+
+      // Отправляем данные в Google Script
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Важно для работы с Google Apps Script без CORS-проблем
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8', // Используем text/plain для обхода предзапроса CORS
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        // При mode: 'no-cors' ответ непрозрачный, поэтому считаем, что успешно, если нет ошибки сети
+        showMessage('Заявка отправлена! Мы скоро с вами свяжемся.', 'success');
+        form.reset();
+      })
+      .catch(error => {
+        console.error('Ошибка:', error);
+        showMessage('Произошла ошибка. Попробуйте позже или позвоните нам.', 'error');
+      })
+      .finally(() => {
+        setLoadingState(false);
+      });
+    });
+
+    function setLoadingState(isLoading) {
+      submitBtn.disabled = isLoading;
+      submitBtn.textContent = isLoading ? 'Отправка...' : 'Отправить заявку';
+    }
+
+    function showMessage(text, type) {
+      formMessage.textContent = text;
+      formMessage.className = 'form-message ' + type;
+    }
+  </script>
+</body>
+</html>
