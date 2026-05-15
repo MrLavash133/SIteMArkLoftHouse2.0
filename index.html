@@ -56,5 +56,41 @@
       © 2026 LOFT HOUSE — риелторская фирма по подбору домов. Все права защищены. Лофт дизайн.
     </footer>
   </div>
+<script>
+  const helpBtn = document.getElementById('helpButton');
+  const modal = document.getElementById('videoModal');
+  const closeBtn = document.getElementById('closeModal');
+  const videoFrame = document.getElementById('videoFrame');
+
+  // Ссылка на видео Google Диска (вставьте ваш ID)
+  const VIDEO_ID = 'ВАШ_ID_ФАЙЛА'; // например, '1A2b3C4d5E6f7G8h9I0j'
+const embedUrl = 'https://drive.google.com/file/d/1sQEmPgyL2zIzE8p05sApt2xtAi3oy8eH/preview';
+  helpBtn.addEventListener('click', () => {
+    videoFrame.src = embedUrl;
+    modal.classList.add('active');
+  });
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.remove('active');
+    videoFrame.src = ''; // останавливаем видео
+  });
+
+  // Закрытие по клику вне окна
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      videoFrame.src = '';
+    }
+  });
+
+  // Закрытие по клавише Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) {
+      modal.classList.remove('active');
+      videoFrame.src = '';
+    }
+  });
+</script>
+  
 </body>
 </html>
