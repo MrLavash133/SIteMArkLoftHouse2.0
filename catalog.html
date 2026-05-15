@@ -511,6 +511,13 @@
   document.addEventListener('DOMContentLoaded', initMobileSliders);
   if (document.readyState !== 'loading') initMobileSliders();
 })();
+// Обработчик клика для переключения по тапу на картинку
+gallery.addEventListener('click', (e) => {
+  // Если клик по стрелке или точке — не обрабатываем, иначе переключаем на следующий слайд
+  if (e.target.closest('.slide-arrow') || e.target.closest('.slide-dots')) return;
+  goToSlide(currentIndex + 1);
+});
+  
 </script>
 </body>
 </html>
