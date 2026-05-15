@@ -231,49 +231,6 @@
       © 2026 LOFT HOUSE — риелторская фирма по подбору домов. Все права защищены. Лофт дизайн.
     </footer>
   </div>
-<style>
-  /* Стрелки навигации для мобильных */
-  .slide-arrows {
-    display: none;
-    position: absolute;
-    top: 50%;
-    width: 100%;
-    transform: translateY(-50%);
-    justify-content: space-between;
-    pointer-events: none;
-    z-index: 5;
-  }
-  .arrow-btn {
-    pointer-events: auto;
-    background: rgba(0,0,0,0.5);
-    color: #fff;
-    border: none;
-    font-size: 24px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    margin: 0 8px;
-  }
-  /* Показываем стрелки только на мобильных */
-  @media (max-width: 768px) {
-    .slide-arrows {
-      display: flex;
-    }
-    /* Отключаем автоматическую анимацию слайдов */
-    .house-img .img-slide {
-      animation: none !important;
-      opacity: 0;
-    }
-    .house-img .img-slide.active {
-      opacity: 1;
-    }
-  }
-</style>
-
 <script>
   // Функция для инициализации свайпов и стрелок в каждой галерее
   function initMobileSlides() {
